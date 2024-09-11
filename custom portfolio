@@ -1,0 +1,56 @@
+import yfinance as yf
+import pandas as pd
+
+class StockPortfolio:
+    def __init__(self):
+        self.portfolio = pd.DataFrame(columns=['Ticker', 'Shares', 'Price'])
+
+    def add_stock(self, ticker, shares, price):
+        new_row = pd.DataFrame({'Ticker': [ticker], 'Shares': [shares], 'Price': [price]})
+        self.portfolio = pd.concat([self.portfolio, new_row], ignore_index=True)
+
+    def remove_stock(self, ticker):
+        self.portfolio = self.portfolio[self.portfolio['Ticker'] != ticker]
+
+    def fetch_live_data(self):
+        for i, row in self.portfolio.iterrows():
+            ticker = row['Ticker']
+            stock_data = yf.Ticker(ticker)
+            history_data = stock_data.history(period='1d')
+            
+            # Check if the data is not empty
+            if history_data.empty:
+                print(f"No data found for ticker: {ticker}")
+                self.portfolio.at[i, 'Current Price'] = None
+                self.portfolio.at[i, 'Value'] = None
+                self.portfolio.at[i, 'Profit/Loss'] = None
+            else:
+                current_price = history_data['Close'].iloc[0]
+                self.portfolio.at[i, 'Current Price'] = current_price
+                self.portfolio.at[i, 'Value'] = row['Shares'] * current_price
+                self.portfolio.at[i, 'Profit/Loss'] = (current_price - row['Price']) * row['Shares']
+
+    def display_portfolio(self):
+        print("\nYour Portfolio:")
+        print(self.portfolio)
+
+# Create an instance of the portfolio
+portfolio = StockPortfolio()
+
+# Sample operations
+portfolio.add_stock('AAPL', 10, 150)  # Adding Apple stock with 10 shares bought at $150 each
+portfolio.add_stock('GOOGL', 5, 1800)  # Adding Google stock with 5 shares bought at $1800 each
+portfolio.add_stock('TSLA', 3, 700)   # Adding Tesla stock with 3 shares bought at $700 each
+
+# Fetch live data to update the portfolio
+portfolio.fetch_live_data()
+
+# Display the portfolio with live data
+portfolio.display_portfolio()
+
+# Remove a stock from the portfolio
+portfolio.remove_stock('TSLA')
+
+# Display the updated portfolio
+portfolio.fetch_live_data()
+portfolio.display_portfolio()
