@@ -1,0 +1,61 @@
+import nltk
+import random
+import string  # for string operations
+from nltk.corpus import wordnet as wn
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+from nltk.tokenize import word_tokenize, sent_tokenize
+
+# Download necessary NLTK data
+nltk.download('punkt')
+nltk.download('wordnet')
+nltk.download('stopwords')
+
+# Sample conversation corpus (can be expanded)
+conversation_corpus = {
+    "hello": ["Hello! How can I assist you today?", "Hi there! What can I do for you?"],
+    "how are you": ["I'm just a program, but I'm doing well! How about you?", "I'm good, thanks! How can I help you?"],
+    "what is your name": ["I am a chatbot created to assist you.", "I'm your friendly assistant!"],
+    "bye": ["Goodbye! Have a great day!", "Bye! Take care!"],
+    "Who created you":["I am created by Saadia"],
+    "Who is Saadia":["Saadia is an AI enthusiast working in wide domains, primarily in NLP, ML, and backend development, with many certificates as achievements."]
+}
+
+# Text Preprocessing
+lemmatizer = WordNetLemmatizer()
+stop_words = set(stopwords.words('english'))
+
+def preprocess_text(text):
+    tokens = word_tokenize(text.lower())
+    tokens = [lemmatizer.lemmatize(word) for word in tokens if word not in stop_words and word.isalnum()]
+    return tokens
+
+# Response generation
+def generate_response(user_input):
+    user_input = user_input.lower()
+
+    # Tokenize and preprocess user input
+    user_input_tokens = preprocess_text(user_input)
+
+    # Check if the user input matches any key in the conversation corpus
+    for key in conversation_corpus:
+        key_tokens = preprocess_text(key)
+        if any(token in user_input_tokens for token in key_tokens):
+            return random.choice(conversation_corpus[key])
+
+    # Fallback response if no match is found
+    return "I'm sorry, I don't understand. Can you please rephrase?"
+
+# Main Chat Loop
+def chatbot():
+    print("Chatbot: Hello! I am your chatbot. Type 'bye' to exit.")
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() == "bye":
+            print("Chatbot: Goodbye! Have a great day!")
+            break
+        response = generate_response(user_input)
+        print(f"Chatbot: {response}")
+
+# Run the chatbot
+chatbot()
